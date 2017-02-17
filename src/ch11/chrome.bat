@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security "C:\Users\JobeMakar\Desktop\ES5\client\js\clientTest.html"

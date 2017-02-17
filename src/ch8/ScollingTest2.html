@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scrolling Test 2 fine scrolling</title>
+<script src="../chapter9_new/modernizr.js"></script>
+<script type="text/javascript">
+window.addEventListener('load', eventWindowLoaded, false);	
+function eventWindowLoaded() {
+
+	canvasApp();
+	
+}
+
+</script>
+
+
+<script language="Javascript">
+	
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+
+function canvasApp(){
+
+	if (!canvasSupport()) {
+			 return;
+  	}else{
+	    var theCanvas = document.getElementById('canvas');
+	    var context = theCanvas.getContext('2d');
+	}
+	
+
+	document.onkeydown=function(e){
+		e=e?e:window.event;
+		keyPressList[e.keyCode]=true;
+	}
+	
+	document.onkeyup=function(e){
+	//document.body.onkeyup=function(e){
+		e=e?e:window.event;
+		keyPressList[e.keyCode]=false;
+	};
+	
+	//key presses
+	var keyPressList=[];
+	
+	//images
+	var tileSheet = new Image();
+	tileSheet.src = "scrolling_tiles.png";
+	
+	//mapdata
+	var world={};
+	
+	//camera
+	var camera={}
+	
+	//key presses
+	var keyPressList={};
+	
+	var rowBuffer=1;
+	var colBuffer=1;
+	
+	var scrollRate=4;
+	
+	function init() {
+		
+		world.cols=15;
+		world.rows=15;
+		world.tileWidth=32;
+		world.tileHeight=32;
+		world.height=world.rows*world.tileHeight;
+		world.width=world.cols*world.tileWidth;
+		
+		camera.height=theCanvas.height;
+		camera.width=theCanvas.width;
+		camera.rows=camera.height / world.tileHeight;
+		camera.cols=camera.width / world.tileWidth;
+		
+		camera.dx=0;
+		camera.dy=0;
+		camera.x=0;
+		camera.y=0;
+		
+		keyPressList=[]
+		//console.log("camera.rows=", camera.rows, "camera.cols=", camera.cols);
+		gameLoop()
+	}
+		
+	function runGame() {
+		camera.dx=0;
+		camera.dy=0;
+		//check input
+		if (keyPressList[38]){	
+			console.log("up");
+			camera.dy=-scrollRate;
+		}
+		if (keyPressList[40]){
+			console.log("down");
+			camera.dy=scrollRate;
+		}
+		
+		if (keyPressList[37]){
+			console.log("left");
+			camera.dx=-scrollRate;
+		}
+		if (keyPressList[39]){
+			console.log("right");
+			camera.dx=scrollRate;
+		}
+		
+		camera.x+=camera.dx;
+		camera.y+=camera.dy;
+		
+		
+		
+		
+		if (camera.x<0) {
+			camera.x=0;
+			colBuffer=0;
+		}else if (camera.x > (world.width - camera.width)-scrollRate) {
+			camera.x=world.width - camera.width;
+			colBuffer=0;
+		}else{
+			rowBuffer=1;
+		}
+		
+		if (camera.y<0) {
+			camera.y=0;
+			rowBuffer=0;
+		}else if (camera.y > (world.height - camera.height)-scrollRate) {
+			camera.y=world.height - camera.height;
+			rowBuffer=0;
+		}else{
+			colBuffer=1;
+		}
+		
+		context.fillStyle = '#000000';
+		context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+		
+		//draw camera
+		//calculate starting tile position
+		
+		var tilex=Math.floor(camera.x/world.tileWidth);
+		var tiley=Math.floor(camera.y/world.tileHeight);
+		var rowCtr=0;
+		var colCtr=0;
+		var tileNum;
+
+		context.setTransform(1,0,0,1,0,0);
+		context.translate(-camera.x%world.tileWidth, -camera.y%world.tileHeight);
+		
+		for (rowCtr=0;rowCtr<camera.rows+rowBuffer;rowCtr++) {
+			for (colCtr=0;colCtr<camera.cols+colBuffer;colCtr++) {
+				
+				tileNum=(world.map[rowCtr+tiley][colCtr+tilex]);
+				
+				var tilePoint={};
+				tilePoint.x=colCtr*world.tileWidth;
+				tilePoint.y=rowCtr*world.tileHeight;
+				var source={};
+				source.x=Math.floor(tileNum % 5) * world.tileWidth;
+				source.y=Math.floor(tileNum /5) *world.tileHeight;
+				context.drawImage(tileSheet, source.x, source.y,world.tileWidth,world.tileHeight,tilePoint.x,tilePoint.y,world.tileWidth,world.tileHeight);
+			}
+			
+		}
+		
+		
+
+	}
+	
+
+	
+	world.map=[
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ,[0,1,2,1,1,1,1,1,1,1,1,1,1,1,0]
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]  
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]
+  ,[0,1,0,1,0,0,1,1,1,0,0,1,0,1,0]
+  ,[0,2,1,1,1,1,0,0,0,1,1,1,1,1,0]
+  ,[0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] 
+  ,[0,1,1,1,2,1,0,0,0,1,1,1,1,1,0]
+  ,[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0]  
+  ,[0,1,1,1,1,1,0,0,0,1,1,1,1,1,0]
+  ,[0,1,0,1,0,0,1,1,1,0,0,1,0,1,0]  
+  ,[0,1,0,1,0,0,2,0,0,0,0,1,0,1,0]
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]  
+  ,[0,1,1,1,1,1,1,2,1,1,1,1,1,1,0]  
+  ,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
+ ];
+
+
+	init();
+	
+	const FRAME_RATE=10;
+	var intervalTime=1000/FRAME_RATE;
+	
+	function gameLoop() {
+		runGame()
+		window.setTimeout(gameLoop, intervalTime);
+	}
+
+}
+
+
+	
+</script>
+
+
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<canvas id="canvas" width="160" height="160">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+
+</body>
+</html>

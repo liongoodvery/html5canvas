@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CH9EX2: Canvas Copy</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+window.addEventListener('load', eventWindowLoaded, false);
+function eventWindowLoaded() {
+   canvasApp();
+}
+
+function canvasSupport () {
+    return Modernizr.canvas;
+}
+
+function canvasApp(){
+
+   if (!canvasSupport()) {
+          return;     }else{
+      var theCanvas = document.getElementById("canvas");
+      var context = theCanvas.getContext("2d");
+
+      var theCanvas2 = document.getElementById("canvas2");
+      var context2= theCanvas2.getContext("2d");
+   }
+   var rotationImageArray = []
+   var tileSheet = new Image();
+   var animationFrame = 0;
+   tileSheet.addEventListener('load', eventSheetLoaded , false);
+   tileSheet.src = "mediumrocks.png";
+   function eventSheetLoaded() {
+      startUp();
+   }
+
+   function startUp(){
+      //context.drawImage(tileSheet, 0, 0);
+      //context2.drawImage(theCanvas, 0, 0,32,32,0,0,32,32);
+
+      for (var ctr=0;ctr<360;ctr+=10){
+         context2.fillStyle="#ffffff";
+         context2.fillRect(0,0,32,32);
+
+         context2.save();
+         context2.setTransform(1,0,0,1,0,0)
+         var angleInRadians = ctr * Math.PI / 180;
+         context2.translate(16, 16)
+         context2.rotate(angleInRadians);
+         context2.drawImage(tileSheet, 0, 0,32,32,-16,-16,32,32);
+         context2.restore();
+
+         var imagedata = context2.getImageData(0, 0, 32, 32);
+
+         rotationImageArray.push(imagedata);
+      }
+      setInterval(drawScreen, 100 );
+   }
+
+   function drawScreen() {
+      //context.fillStyle="#ffffff";
+      //context.fillRect(50,50,32,32);
+      context.putImageData(rotationImageArray[animationFrame],50,50);
+      animationFrame++;
+      if (animationFrame ==rotationImageArray.length){
+         animationFrame = 0;
+      }
+   }
+
+}
+
+</script>
+</head>
+<body>
+<div>
+<canvas id="canvas" width="256" height="256" style="position: absolute; top: 
+ 50px; left: 50px;">
+ Your browser does not support the HTML 5 Canvas.
+</canvas>
+
+<canvas id="canvas2" width="32" height="32" style="position: absolute; top: 
+ 256px; left: 50px;">
+ Your browser does not support HTML5 Canvas.
+</canvas>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CH6EX15 : Video Puzzle with Webcam Source</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+window.addEventListener('load', eventWindowLoaded, false);	
+var videoElement;
+var videoDiv;
+function eventWindowLoaded() {
+	
+	videoElement = document.createElement("video");
+	videoDiv = document.createElement('div');
+	document.body.appendChild(videoDiv);
+	videoDiv.appendChild(videoElement);
+	videoDiv.setAttribute("style", "display:none;");
+	if (userMediaSupported()) {
+		startVideo();
+		canvasApp();
+	} else {
+		alert("getUserMedia() Not Supported")
+	}	
+	
+}
+
+function userMediaSupported() {
+  	return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia || navigator.msGetUserMedia);
+}
+
+
+function mediaFail(error) {
+	//error code 1 = permission Denied
+	alert("Failed To get user media:" + error.code)
+}
+
+function startVideo() {
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+	navigator.getUserMedia({video: true, audio:true}, mediaSuccess, mediaFail);
+	
+}
+
+function mediaSuccess(userMedia) {
+	window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    videoElement.src = window.URL.createObjectURL(userMedia);
+}
+
+
+
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+function canvasApp() {
+	
+  if (!canvasSupport()) {
+			 return;
+  		}
+
+  
+  
+  function  drawScreen () {
+
+		//Background
+		
+		context.fillStyle = '#303030';
+		context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+		//Box
+		context.strokeStyle = '#FFFFFF'; 
+		context.strokeRect(5,  5, theCanvas.width-10, theCanvas.height-10);
+		
+		
+		for (var c = 0; c < cols; c++) {
+			for (var r = 0; r < rows; r++) {
+				
+				var tempPiece  = board[c][r];
+				var imageX = tempPiece.finalCol*partWidth;
+				var imageY = tempPiece.finalRow*partHeight;
+				var placeX = c*partWidth+c*xPad+startXOffset;
+				var placeY = r*partHeight+r*yPad+startYOffset;
+				context.drawImage(videoElement, imageX, imageY, partWidth, partHeight, placeX, placeY, partWidth, partHeight);
+				if (tempPiece.selected) {
+					
+					
+					context.strokeStyle = '#FFFF00'; 
+					context.strokeRect( placeX,  placeY, partWidth, partHeight);
+					
+				}
+			}
+		}
+  			
+	}
+	
+	function randomizeBoard(board) {
+		var newBoard = new Array();
+		var cols = board.length;
+		var rows = board[0].length
+		for (var i = 0; i < cols; i++) {
+			newBoard[i] = new Array();
+			for (var j =0; j < rows; j++) {
+				var found = false;
+				var rndCol = 0;
+				var rndRow = 0;
+				while (!found) {
+					var rndCol = Math.floor(Math.random() * cols);
+					var rndRow = Math.floor(Math.random() * rows);
+					if (board[rndCol][rndRow] != false) {
+						found = true;
+					}
+				}
+				
+				newBoard[i][j] = board[rndCol][rndRow];
+				board[rndCol][rndRow] = false;
+			}
+			
+		}
+		
+		return newBoard;
+	
+	}
+	
+	function eventMouseUp(event) {
+		
+		var mouseX;
+		var mouseY;
+		var pieceX;
+		var pieceY;
+		var x;
+   	 	var y;
+    	if (event.pageX || event.pageY) {
+      		x = event.pageX;
+      		y = event.pageY;
+    	}
+    	else {
+     		x = e.clientX + document.body.scrollLeft +
+           document.documentElement.scrollLeft;
+      		y = e.clientY + document.body.scrollTop +
+           document.documentElement.scrollTop;
+    	}
+		x -= theCanvas.offsetLeft;
+		y -= theCanvas.offsetTop;
+			
+		mouseX=x;
+		mouseY=y;
+		var selectedList= new Array();
+		for (var c = 0; c < cols; c++) {
+			
+			for (var r =0; r < rows; r++) {
+			   pieceX = c*partWidth+c*xPad+startXOffset;
+			   pieceY = r*partHeight+r*yPad+startYOffset;
+			   if ( (mouseY >= pieceY) && (mouseY <= pieceY+partHeight) && (mouseX >= pieceX) && (mouseX <= pieceX+partWidth) ) {
+				   
+				   if ( board[c][r].selected) {
+				   		board[c][r].selected = false;
+						
+				   } else {
+				   		board[c][r].selected = true;
+						
+				   }
+			   }
+			   if (board[c][r].selected) {
+			   		selectedList.push({col:c,row:r})
+			   }
+			
+			}				
+			
+		}
+		if (selectedList.length == 2) {
+			var selected1 = selectedList[0];
+			var selected2 = selectedList[1];
+			var tempPiece1 = board[selected1.col][selected1.row];
+			board[selected1.col][selected1.row] =  board[selected2.col][selected2.row];
+			board[selected2.col][selected2.row] = tempPiece1;
+			board[selected1.col][selected1.row].selected = false;
+			board[selected2.col][selected2.row].selected = false;
+		}
+		
+	
+		
+	
+	}
+	
+	var theCanvas = document.getElementById('canvasOne');
+	var context = theCanvas.getContext('2d');
+	videoElement.loop = true;
+	videoElement.play();
+	
+	//Puzzle Settings
+	
+	var rows = 4;
+	var cols = 4;
+	var xPad = 10;
+	var yPad = 10;
+	var startXOffset = 10;
+	var startYOffset = 10;
+	var partWidth = videoElement.width/cols;
+	var partHeight = videoElement.height/rows;
+	//620x480
+	partWidth=160;
+	partHeight=120;
+	var board = new Array();
+	
+	//Initialize Board
+	
+	
+	
+	for (var i = 0; i < cols; i++) {
+			board[i] = new Array();
+			for (var j =0; j < rows; j++) {
+				board[i][j] = { finalCol:i,finalRow:j,selected:false };
+			}
+	}
+	
+	board = randomizeBoard(board);
+	
+	theCanvas.addEventListener("mouseup",eventMouseUp, false);		
+	
+	function gameLoop() {
+		window.setTimeout(gameLoop, 20);
+		drawScreen();	
+	}
+		
+	gameLoop();
+	
+}
+
+
+</script>
+
+</head>
+<body>
+<canvas id="canvasOne" width="690" height="530"style="position: absolute; top: 10px; left: 10px;" >
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+</body>
+</html>
+
+
+
+

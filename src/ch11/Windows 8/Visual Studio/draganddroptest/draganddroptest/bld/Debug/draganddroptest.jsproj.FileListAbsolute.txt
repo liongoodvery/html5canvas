@@ -1,0 +1,13 @@
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bin\Debug\resources.pri
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bin\Debug\AppxManifest.xml
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bin\Debug\draganddroptest.build.appxrecipe
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\priconfig.xml
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\layout.resfiles
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\resources.resfiles
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\pri.resfiles
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\LanguageQualifiers.txt
+c:\users\steve\documents\visual studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\ProjectArchitectures.txt
+C:\Users\steve\Documents\Visual Studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\priconfig.xml.intermediate
+C:\Users\steve\Documents\Visual Studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\layout.resfiles.intermediate
+C:\Users\steve\Documents\Visual Studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\resources.resfiles.intermediate
+C:\Users\steve\Documents\Visual Studio 2012\Projects\draganddroptest\draganddroptest\bld\Debug\pri.resfiles.intermediate

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Drag And Drop Canvas</title>
+<script type="text/javascript" src="EventDispatcher.js"></script>
+<script type="text/javascript" src="DisplayList.js"></script>
+<script type="text/javascript" src="GameUtilities.js"></script>
+<script type="text/javascript" src="DragAndDrop.js"></script>
+<script type="text/javascript" src="Ornament.js"></script>
+<script type="text/javascript" src="modernizr.js"></script>
+<script type="text/javascript">
+window.addEventListener("load", eventWindowLoaded, false);	
+function eventWindowLoaded () {
+	DragAndDrop();
+}
+</script>
+
+</head>
+<body>
+<div align="center">
+<canvas id="canvasOne" width="640" height="480" style="cursor: default;">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+</div>
+
+</body>
+</html>

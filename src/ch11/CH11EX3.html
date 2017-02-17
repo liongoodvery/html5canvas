@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ch11EX3: ES5 Ball Demo</title>
+<script src="modernizr.js"></script>
+<script src="ElectroServer-5-Client-JavaScript.js"></script>
+<script type="text/javascript">
+window.addEventListener("load", eventWindowLoaded, false);	
+
+
+function eventWindowLoaded () {
+	canvasApp();
+}
+
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+
+function canvasApp () {
+  		
+  		if (!canvasSupport()) {
+			 return;
+  		}
+		
+		var theCanvas = document.getElementById('canvasOne');
+		var context = theCanvas.getContext('2d'); 
+		
+		var formElement = document.getElementById("sendChat");
+		formElement.addEventListener('click', sendMessage, false);	
+		
+		
+	
+		
+  		function drawScreen() {
+			//background
+			context.fillStyle = "#ffffaa";
+  			context.fillRect(0, 0, 500, 320);
+			
+			context.fillStyle    = "#000000";
+			context.font         = "10px _sans";
+			context.textBaseline = "top";
+			
+			//box
+			
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(5,  5, 490, 310);
+			
+			var starty = 15;
+			var maxMessages = 22;
+			
+			
+			//status box
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(345,  10, 145, 285);
+			var starti = 0;
+			
+			if (statusMessages.length > maxMessages) {
+				 starti= (statusMessages.length) - maxMessages;
+				
+			}
+			for (var i = starti;i< statusMessages.length;i++) {
+				context.fillText  (statusMessages[i], 350, starty );
+				starty+=12;
+			}
+			
+			//chat box
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(10,  10, 335, 285);
+			
+			starti = 0;
+			lastMessage = chatMessages.length-1;
+			if (chatMessages.length > maxMessages) {
+				 starti= (chatMessages.length) - maxMessages;
+			}
+			starty = 15;
+			for (var i = starti;i< chatMessages.length;i++) {
+				context.fillText  (chatMessages[i], 10, starty );
+				starty+=12;
+			}
+			
+			context.fillText  ("User Name:" + username, 10, 295 );
+			
+			update();
+		    testWalls();
+		    render();
+			
+			
+		}
+		
+		    function updateBall(ball) {
+		
+				ball.radians = ball.angle * Math.PI/ 180;
+				ball.velocityx = Math.cos(ball.radians) * ball.speed;
+				ball.velocityy = Math.sin(ball.radians) * ball.speed;
+	
+			}
+			
+			var statusMessages = new Array();
+			var chatMessages = new Array();
+			
+			var server = new ElectroServer.Server("server1");
+			
+			statusMessages.push(server);
+			
+			var availableConnection = new ElectroServer.AvailableConnection("localhost", 8989, ElectroServer.TransportType.BinaryHTTP);
+			
+			server.addAvailableConnection(availableConnection);
+			
+			var es = new ElectroServer();
+			es.initialize();
+			
+			var username;
+			var usercolor;
+			var _room;
+			var ballcounter = 0;
+			
+			es.engine.addServer(server);
+			
+			es.engine.addEventListener(MessageType.ConnectionResponse, onConnectionResponse);
+			es.engine.addEventListener(MessageType.LoginResponse, onLoginResponse);
+			es.engine.addEventListener(MessageType.JoinRoomEvent, onJoinRoomEvent);
+			es.engine.addEventListener(MessageType.JoinZoneEvent, onJoinZoneEvent);
+			es.engine.addEventListener(MessageType.ConnectionAttemptResponse, onConnectionAttemptResponse);
+			es.engine.addEventListener(MessageType.PublicMessageEvent, onPublicMessageEvent);
+			
+			es.engine.connect();
+			
+			
+			statusMessages.push("Connecting...");
+			
+			
+			var balls = new Array();
+			
+			theCanvas.addEventListener("mouseup",eventMouseUp, false);	
+			
+			var friction = 0;
+			
+			setInterval(drawScreen, 33);
+			
+			function eventMouseUp(event) {
+				var mouseX;
+				var mouseY;
+				if ( event.layerX ||  event.layerX == 0) { // Firefox
+					mouseX = event.layerX ;
+					mouseY = event.layerY;
+				} else if (event.offsetX || event.offsetX == 0) { // Opera
+					mouseX = event.offsetX;
+					mouseY = event.offsetY;
+				}
+				ballcounter++;
+				var maxSize = 8;
+				var minSize = 5;
+				var maxSpeed = maxSize+5;
+				var tempRadius = Math.floor(Math.random()*maxSize)+minSize;
+				var tempX = mouseX;
+				var tempY = mouseY;
+				var tempSpeed = maxSpeed-tempRadius;
+				var tempAngle =  Math.floor(Math.random()*360);
+				var tempRadians = tempAngle * Math.PI/ 180;
+				var tempvelocityx = Math.cos(tempRadians) * tempSpeed;
+				var tempvelocityy = Math.sin(tempRadians) * tempSpeed;
+				var pmr = new PublicMessageRequest();
+				pmr.message = "";
+				pmr.roomId = _room.id;
+    			pmr.zoneId = _room.zoneId;
+				var esob = new ElectroServer.EsObject();
+				esob.setFloat("tempX",tempX );
+				esob.setFloat("tempY",tempY );
+				esob.setFloat("tempRadius",tempRadius );
+				esob.setFloat("tempSpeed",tempSpeed );
+				esob.setFloat("tempAngle",tempAngle );
+				esob.setFloat("velocityx",tempvelocityx );
+				esob.setFloat("velocityy",tempvelocityy );
+				esob.setString("usercolor",usercolor );
+				esob.setString("ballname",username+ballcounter);
+				esob.setString("type", "newball");
+				pmr.esObject = esob;
+				es.engine.send(pmr);
+				statusMessages.push("send ball");
+				
+				
+		
+			}
+			
+			
+			
+			function createNetBall(tempX,tempY,tempSpeed,tempAngle,tempRadius,tempvelocityx, tempvelocityy, user, usercolor, ballname) {
+		
+				tempBall = {x:tempX,y:tempY,radius:tempRadius, speed:tempSpeed, angle:tempAngle, velocityx:tempvelocityx, velocityy:tempvelocityy,nextx:tempX, nexty:tempY, mass:tempRadius, usercolor:usercolor, ballname:ballname}
+				balls.push(tempBall);
+			}
+			
+			function onConnectionAttemptResponse(event) {
+				statusMessages.push("connection attempt response!!");
+			}
+			
+			function onJoinRoomEvent(event) {
+				statusMessages.push("joined a room");
+				_room = es.managerHelper.zoneManager.zoneById(event.zoneId).roomById(event.roomId);
+				var formElement = document.getElementById("inputForm");
+				formElement.setAttribute("style", "display:true");
+			}
+			
+			function onJoinZoneEvent(event) {
+				statusMessages.push("joined a zone");
+			
+			}
+			
+			function onConnectionResponse(event) {
+				statusMessages.push("Connect Successful?: "+event.successful);
+				var r = new LoginRequest();
+				r.userName = "CanvasUser_" + Math.floor(Math.random() * 1000);
+				es.engine.send(r);
+			}
+			
+			function onLoginResponse(event) {
+				statusMessages.push("Login Successful?: "+event.successful);
+				
+				username = event.userName;
+				usercolor = "#"+(Math.random()*0xFFFFFF<<0).toString(16);
+				
+				var crr = new CreateRoomRequest();
+				crr.zoneName = "TestZoneCuesors";
+				crr.roomName = "TestRoomCursors";
+				
+				es.engine.send(crr);
+				
+			}
+			
+			function sendMessage(event) {
+					var formElement = document.getElementById("textBox");
+				    var pmr = new PublicMessageRequest();
+					pmr.message = "";
+					pmr.roomId = _room.id;
+    				pmr.zoneId = _room.zoneId;
+					var esob = new ElectroServer.EsObject();
+					esob.setString("message", formElement.value);
+					esob.setString("type","chatmessage");
+					pmr.esObject = esob;
+					es.engine.send(pmr);
+					statusMessages.push("message sent");
+			
+			}
+			
+			function onPublicMessageEvent(event) {
+				statusMessages.push("message received");
+				var esob = event.esObject;
+				
+				if (esob.getString("type") == "chatmessage") {
+					
+					chatMessages.push(event.userName + ":" + esob.getString("message"));
+					
+				} else if (esob.getString("type") == "newball") {
+					statusMessages.push("create ball")
+					createNetBall(esob.getFloat("tempX"),esob.getFloat("tempY"), esob.getFloat("tempSpeed"),esob.getFloat("tempAngle"),esob.getFloat("tempRadius"),esob.getFloat("velocityx"), esob.getFloat("velocityy"),event.userName,esob.getString("usercolor"), esob.getString("ballname") );
+				} 
+			
+			}
+		
+					
+		    function update() {
+				for (var i =0; i <balls.length; i++) {
+					ball = balls[i];
+					//Friction
+					ball.velocityx = ball.velocityx - ( ball.velocityx*friction);
+					ball.velocityy = ball.velocityy - ( ball.velocityy*friction);
+					
+					ball.nextx = (ball.x += ball.velocityx);
+					ball.nexty = (ball.y += ball.velocityy);
+				}
+		
+				
+			}
+	
+			function testWalls() {
+				var ball;
+				var testBall;
+				
+				for (var i =0; i <balls.length; i++) {
+					ball = balls[i];
+					
+					if (ball.nextx+ball.radius > theCanvas.width) {
+						ball.velocityx = ball.velocityx*-1;
+						ball.nextx = theCanvas.width - ball.radius;
+						
+					} else if (ball.nextx-ball.radius < 0 ) {
+						ball.velocityx = ball.velocityx*-1;
+						ball.nextx =  ball.radius;
+					
+					} else if (ball.nexty+ball.radius > theCanvas.height ) {
+						ball.velocityy = ball.velocityy*-1;
+						ball.nexty = theCanvas.height - ball.radius;
+						
+					} else if(ball.nexty-ball.radius < 0) {
+						ball.velocityy = ball.velocityy*-1;
+						ball.nexty =  ball.radius;
+					}
+					
+					
+				}
+			
+			}
+			
+			
+			function render() {
+				var ball;
+				
+			
+				
+				for (var i =0; i <balls.length; i++) {
+					
+					
+					ball = balls[i];
+					ball.x = ball.nextx;
+					ball.y = ball.nexty;
+					context.fillStyle = ball.usercolor;
+					context.beginPath();
+					context.arc(ball.x,ball.y,ball.radius,0,Math.PI*2,true);
+					context.closePath();
+					context.fill();
+				}
+				
+			}
+			
+			
+			
+}
+
+
+</script> 
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<canvas id="canvasOne" width="500" height="320">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+<div id="inputForm"  style="display:none;">
+<form>
+<input id="textBox" placeholder="your text" /><input type="button" id ="sendChat" value="Send"/>
+</form> 
+</div>
+  
+</div>
+</body>
+</html>

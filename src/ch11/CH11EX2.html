@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ch11Ex2: ES5 Chat Demo </title>
+<script src="modernizr.js"></script>
+<script src="ElectroServer-5-Client-JavaScript.js"></script>
+<script type="text/javascript">
+window.addEventListener("load", eventWindowLoaded, false);	
+
+
+function eventWindowLoaded () {
+	canvasApp();
+}
+
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+
+function canvasApp () {
+  		
+  		if (!canvasSupport()) {
+			 return;
+  		}
+		
+		var theCanvas = document.getElementById('canvasOne');
+		var context = theCanvas.getContext('2d'); 
+		
+		var formElement = document.getElementById("sendChat");
+		formElement.addEventListener('click', sendMessage, false);	
+			
+		function drawScreen() {
+				//background
+			context.fillStyle = "#ffffaa";
+			context.fillRect(0, 0, 500, 320);
+				
+			context.fillStyle    = "#000000";
+			context.font         = "10px _sans";
+			context.textBaseline = "top";
+				
+			//box
+				
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(5,  5, 490, 310);
+				
+			var starty = 15;
+			var maxMessages = 22;
+				
+				
+			//status box
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(345,  10, 145, 285);
+			var starti = 0;
+				
+			if (statusMessages.length > maxMessages) {
+					starti= (statusMessages.length) - maxMessages;
+					
+			}
+			for (var i = starti;i< statusMessages.length;i++) {
+				context.fillText  (statusMessages[i], 350, starty );
+				starty+=12;
+			}
+				
+				//chat box
+			context.strokeStyle = '#000000'; 
+			context.strokeRect(10,  10, 335, 285);
+				
+			starti = 0;
+			lastMessage = chatMessages.length-1;
+			if (chatMessages.length > maxMessages) {
+					 starti= (chatMessages.length) - maxMessages;
+			}
+			starty = 15;
+			for (var i = starti;i< chatMessages.length;i++) {
+					context.fillText  (chatMessages[i], 10, starty );
+					starty+=12;
+			}
+				
+			context.fillText  ("User Name:" + username, 10, 295 );
+		
+		}
+		
+			var statusMessages = new Array();
+			var chatMessages = new Array();
+			
+			var server = new ElectroServer.Server("server1");
+			
+			statusMessages.push(server);
+			
+			var availableConnection = new ElectroServer.AvailableConnection("localhost", 8989, ElectroServer.TransportType.BinaryHTTP);
+			
+			server.addAvailableConnection(availableConnection);
+			
+			var es = new ElectroServer();
+			es.initialize();
+			
+			var username;
+			var _room;
+			
+			es.engine.addServer(server);
+			
+			es.engine.addEventListener(MessageType.ConnectionResponse, onConnectionResponse);
+			es.engine.addEventListener(MessageType.LoginResponse, onLoginResponse);
+			es.engine.addEventListener(MessageType.JoinRoomEvent, onJoinRoomEvent);
+			es.engine.addEventListener(MessageType.JoinZoneEvent, onJoinZoneEvent);
+			es.engine.addEventListener(MessageType.ConnectionAttemptResponse, onConnectionAttemptResponse);
+			es.engine.addEventListener(MessageType.PublicMessageEvent, onPublicMessageEvent);
+			
+			es.engine.connect();
+			
+			statusMessages.push("Connecting...");
+	
+			setInterval(drawScreen, 33);
+
+			function onConnectionAttemptResponse(event) {
+				statusMessages.push("connection attempt response!!");
+			}
+			
+			function onJoinRoomEvent(event) {
+				statusMessages.push("joined a room");
+				_room = es.managerHelper.zoneManager.zoneById(event.zoneId).roomById(event.roomId);
+				var formElement = document.getElementById("inputForm");
+				formElement.setAttribute("style", "display:true");
+			}
+			
+			function onJoinZoneEvent(event) {
+				statusMessages.push("joined a zone");
+			
+			}
+			
+			function onConnectionResponse(event) {
+				statusMessages.push("Connect Successful?: "+event.successful);
+				var r = new LoginRequest();
+				r.userName = "CanvasUser_" + Math.floor(Math.random() * 1000);
+				es.engine.send(r);
+			}
+			
+			function onLoginResponse(event) {
+				statusMessages.push("Login Successful?: "+event.successful);
+				
+				username = event.userName;
+				
+				var crr = new CreateRoomRequest();
+				crr.zoneName = "TestZoneChat";
+				crr.roomName = "TestRoomChat";
+				
+				es.engine.send(crr);
+			}
+			
+			function sendMessage(event) {
+					var formElement = document.getElementById("textBox");
+				    var pmr = new PublicMessageRequest();
+					pmr.message = "";
+					pmr.roomId = _room.id;
+    				pmr.zoneId = _room.zoneId;
+					var esob = new ElectroServer.EsObject();
+					esob.setString("message", formElement.value);
+					esob.setString("type","chatmessage");
+					pmr.esObject = esob;
+					es.engine.send(pmr);
+					statusMessages.push("message sent");
+			
+			}
+			
+			
+			function onPublicMessageEvent(event) {
+				
+				var esob = event.esObject;
+				statusMessages.push("message received");
+				if (esob.getString("type") == "chatmessage") {
+					
+					chatMessages.push(event.userName + ":" + esob.getString("message"));
+					
+				}
+			
+			}
+
+}
+
+
+</script> 
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<canvas id="canvasOne" width="500" height="320">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+<div id="inputForm"  style="display:none;">
+<form>
+<input id="textBox" placeholder="your text" /><input type="button" id ="sendChat" value="Send"/>
+</form> 
+</div>
+  
+</div>
+</body>
+</html>

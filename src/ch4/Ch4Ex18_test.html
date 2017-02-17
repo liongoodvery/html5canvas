@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chapter 4 Example 18: Pixel Collisions</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+window.addEventListener('load', eventWindowLoaded, false);	
+function eventWindowLoaded() {
+
+	canvasApp();
+	
+}
+
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+
+function canvasApp(){
+	
+
+	if (!canvasSupport()) {
+			 return;
+  	}else{
+	    var theCanvas = document.getElementById('canvas');
+	    var context = theCanvas.getContext('2d');
+	    
+	    
+	}
+	
+	var blueObject={};
+	var redObject={};
+	
+	blueObject.x=0;
+	blueObject.y=200;
+	blueObject.dx=2;
+	blueObject.width=48;
+	blueObject.height=48;
+	blueObject.image=new Image();
+	blueObject.image.src="blueplus.png";
+	
+	redObject.x=348;
+	redObject.y=200;
+	redObject.dx=-2;
+	redObject.width=48;
+	redObject.height=48;
+	redObject.image=new Image();
+	redObject.image.src="redcircle.png";
+	
+	
+	function drawScreen() {
+		blueObject.x+=blueObject.dx;
+		redObject.x+=redObject.dx;
+	
+		context.clearRect(0,0,theCanvas.width, theCanvas.height);
+		context.drawImage(blueObject.image, blueObject.x, blueObject.y);
+		context.drawImage(redObject.image, redObject.x, redObject.y);
+		
+		blueObject.blueImageData=context.getImageData(blueObject.x, blueObject.y, blueObject.width, blueObject.height);
+		redObject.redImageData=context.getImageData(redObject.x, redObject.y, redObject.width, redObject.height);
+		
+		//console.log("blueObject.blueImageData.data[0]=" + redObject.redImageData.data[0]);
+		
+		if (isPixelCollision( blueObject.blueImageData, blueObject.x, blueObject.y, redObject.redImageData, redObject.x, redObject.y, false )) {
+			console.log("pixel collision");
+			blueObject.dx=0;
+			redObject.dx=0;
+		}
+	}
+	
+ /**
+ * @author Joseph Lenton - PlayMyCode.com
+ *
+ * @param first An ImageData object from the first image we are colliding with.
+ * @param x The x location of 'first'.
+ * @param y The y location of 'first'.
+ * @param other An ImageData object from the second image involved in the collision check.
+ * @param x2 The x location of 'other'.
+ * @param y2 The y location of 'other'.
+ * @param isCentred True if the locations refer to the centre of 'first' and 'other', false to specify the top left corner.
+ */
+function isPixelCollision( first, x, y, other, x2, y2, isCentred )
+{
+    // we need to avoid using floats, as were doing array lookups
+    x  = Math.round( x );
+    y  = Math.round( y );
+    x2 = Math.round( x2 );
+    y2 = Math.round( y2 );
+
+    var w  = first.width,
+        h  = first.height,
+        w2 = other.width,
+        h2 = other.height ;
+
+    // deal with the image being centred
+    if ( isCentred ) {
+        // fast rounding, but positive only
+        x  -= ( w/2 + 0.5) << 0
+        y  -= ( h/2 + 0.5) << 0
+        x2 -= (w2/2 + 0.5) << 0
+        y2 -= (h2/2 + 0.5) << 0
+    }
+
+    // find the top left and bottom right corners of overlapping area
+    var xMin = Math.max( x, x2 ),
+        yMin = Math.max( y, y2 ),
+        xMax = Math.min( x+w, x2+w2 ),
+        yMax = Math.min( y+h, y2+h2 );
+
+    // Sanity collision check, we ensure that the top-left corner is both
+    // above and to the left of the bottom-right corner.
+    if ( xMin >= xMax || yMin >= yMax ) {
+        return false;
+    }
+
+    var xDiff = xMax - xMin,
+        yDiff = yMax - yMin;
+
+    // get the pixels out from the images
+    var pixels  = first.data,
+        pixels2 = other.data;
+
+    // if the area is really small,
+    // then just perform a normal image collision check
+    //if ( xDiff < 4 && yDiff < 4 ) {
+        for ( var pixelX = xMin; pixelX < xMax; pixelX++ ) {
+            for ( var pixelY = yMin; pixelY < yMax; pixelY++ ) {
+                if (
+                        ( pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ] !== 0 ) &&
+                        ( pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ] !== 0 )
+						
+						
+                ) {
+                    console.log(pixelX-x, ",", pixelY-y," " ,((pixelX-x ) + (pixelY-y )*w ), " pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ]=" , pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ]);
+					console.log(pixelX-x2, ",", pixelY-y2," " ,((pixelX-x2) + (pixelY-y2)*w2), " pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ]=" , pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ]);
+					return true;
+                }
+            }
+        }
+    //} else {
+        /* What is this doing?
+         * It is iterating over the overlapping area,
+         * across the x then y the,
+         * checking if the pixels are on top of this.
+         *
+         * What is special is that it increments by incX or incY,
+         * allowing it to quickly jump across the image in large increments
+         * rather then slowly going pixel by pixel.
+         *
+         * This makes it more likely to find a colliding pixel early.
+         */
+
+        // Work out the increments,
+        // it's a third, but ensure we don't get a tiny
+        // slither of an area for the last iteration (using fast ceil).
+		/*
+	   var incX = xDiff / 3.0,
+            incY = yDiff / 3.0;
+        incX = (~~incX === incX) ? incX : (incX+1 | 0);
+        incY = (~~incY === incY) ? incY : (incY+1 | 0);
+
+        for ( var offsetY = 0; offsetY < incY; offsetY++ ) {
+            for ( var offsetX = 0; offsetX < incX; offsetX++ ) {
+                for ( var pixelY = yMin+offsetY; pixelY < yMax; pixelY += incY ) {
+                    for ( var pixelX = xMin+offsetX; pixelX < xMax; pixelX += incX ) {
+                        if (
+                                ( pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ] !== 0 ) &&
+                                ( pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ] !== 0 )
+                        ) {
+                            console.log(((pixelX-x ) + (pixelY-y )*w ), " pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ]=" , pixels [ ((pixelX-x ) + (pixelY-y )*w )*4 + 3 ]);
+							console.log(((pixelX-x2) + (pixelY-y2)*w2), " pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ]=" , pixels2[ ((pixelX-x2) + (pixelY-y2)*w2)*4 + 3 ]);
+							return true;
+                        }
+                    }
+                }
+            }
+        }
+    }*/
+
+    return false;
+}
+	
+	
+	
+	function boundingBoxCollide(object1, object2) {
+		var left1 = object1.x;
+		var left2 = object2.x;
+		var right1 = object1.x + object1.width;
+		var right2 = object2.x + object2.width;
+		var top1 = object1.y;
+		var top2 = object2.y;
+		var bottom1 = object1.y + object1.height;
+		var bottom2 = object2.y + object2.height;
+	    
+		if (bottom1 < top2) return(false);
+		if (top1 > bottom2) return(false);
+	    
+		if (right1 < left2) return(false);
+		if (left1 > right2) return(false);
+	    
+		return(true);
+
+	};
+	
+	function startUp(){
+		gameLoop();
+	}
+   
+	function gameLoop() {
+		window.setTimeout(gameLoop, 100);
+		drawScreen();    
+	}
+	
+	startUp();
+	
+}
+
+
+</script> 
+</head>
+<body>
+<div>
+<canvas id="canvas" width="400" height="400"  style="position: absolute; top: 50px; left: 50px;">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+
+
+</div>
+
+
+</body>
+</html>

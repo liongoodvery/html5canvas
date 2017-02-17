@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chapter 8 Example 15 - Larger A* Example with Diagonals</title>
+<script src="modernizr.js"></script>
+<script type='text/javascript' src='graph.js'></script>
+<script type='text/javascript' src='astar.js'></script>
+<script type="text/javascript">
+window.addEventListener('load', eventWindowLoaded, false);	
+function eventWindowLoaded() {
+
+	canvasApp();
+	
+}
+
+function canvasSupport () {
+  	return Modernizr.canvas;
+}
+
+function canvasApp(){
+	
+	if (!canvasSupport()) {
+			 return;
+  	}else{
+	    var theCanvas = document.getElementById('canvas');
+	    var context = theCanvas.getContext('2d');
+	}
+	
+	//set up tile map
+   var mapRows=15;
+   var mapCols=15;
+   var tileMap=[
+   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  ,[0,1,1,1,1,1,1,1,1,1,1,1,1,1,0]
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]  
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]
+  ,[0,1,0,1,0,0,1,1,1,0,0,1,0,1,0]
+  ,[0,1,1,1,1,1,0,0,0,1,1,1,1,1,0]
+  ,[0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] 
+  ,[0,1,1,1,1,1,0,0,0,1,1,1,1,1,0]
+  ,[0,0,0,0,0,1,1,1,1,1,0,0,0,0,0]  
+  ,[0,1,1,1,1,1,0,0,0,1,1,1,1,1,0]
+  ,[0,1,0,1,0,0,1,1,1,0,0,1,0,1,0]  
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]
+  ,[0,1,0,1,0,0,1,0,1,0,0,1,0,1,0]  
+  ,[0,1,1,1,1,1,1,1,1,1,1,1,1,1,0]  
+  ,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
+ ];
+
+	
+	console.log("tileMap.length=" , tileMap.length);
+	
+	//set up a* graph
+	var graph = new Graph(tileMap);
+	var startNode={x:4,y:1}; // use values of map turned on side
+	var endNode={x:13,y:10};
+	
+	//create node list
+	var start = graph.nodes[startNode.x][startNode.y];
+    var end = graph.nodes[endNode.x][endNode.y];
+    var result = astar.search(graph.nodes, start, end, true);
+	
+	//load in tile sheet image
+	var tileSheet=new Image();
+	tileSheet.addEventListener('load', eventSheetLoaded , false);
+	tileSheet.src="tiles.png";
+
+	function eventSheetLoaded() {
+		drawScreen()
+	}
+
+	function drawScreen() {
+		for (var rowCtr=0;rowCtr<mapRows;rowCtr++) {
+			for (var colCtr=0;colCtr<mapCols;colCtr++){
+			
+				var tileId=tileMap[rowCtr][colCtr];
+				var sourceX=Math.floor(tileId % 5) *32;
+				var sourceY=Math.floor(tileId / 5) *32;
+				
+				context.drawImage(tileSheet, sourceX, sourceY,32,32,colCtr*32,rowCtr*32,32,32);
+				
+			}
+		}
+		
+		
+		
+		//draw green circle at start node
+		context.beginPath();
+		context.strokeStyle="green";
+		context.lineWidth=5;
+		context.arc((startNode.y*32)+16, (startNode.x*32)+16, 10, 0,(Math.PI/180)*360,false);
+		context.stroke();
+		context.closePath();
+		
+		//draw red circle at end node
+		context.beginPath();
+		context.strokeStyle="red";
+		context.lineWidth=5;
+		context.arc((endNode.y*32)+16, (endNode.x*32)+16, 10, 0,(Math.PI/180)*360,false);
+		context.stroke();
+		context.closePath();
+		
+		//draw black circles on path
+		for (var ctr=0;ctr<result.length-1;ctr++) {
+			var node=result[ctr];
+			context.beginPath();
+			context.strokeStyle="black";
+			context.lineWidth=5;
+			context.arc((node.y*32)+16, (node.x*32)+16, 10, 0,(Math.PI/180)*360,false);
+			context.stroke();
+			context.closePath();
+		}
+		
+	
+	}
+	
+}
+
+</script> 
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+<canvas id="canvas" width="500" height="500">
+ Your browser does not support the HTML 5 Canvas. 
+</canvas>
+</div>
+</body>
+</html>

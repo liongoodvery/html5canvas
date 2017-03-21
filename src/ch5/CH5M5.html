@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CH5EX1: Moving On A Simple Line</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener('load', eventWindowLoaded, false);
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById('canvasOne');
+            var context = theCanvas.getContext('2d');
+            var pointImage = new Image();
+            pointImage.src = "point.png";
+
+            let ballCount = 50;
+            let minRadius = 5;
+            let maxRadius = 15;
+            let minSpeed = 2;
+            let maxSpeed = 6;
+
+            let balls = [];
+
+            for (let i = 0; i < ballCount; ++i) {
+                var random = Math.random();
+                let tempRadians = random * 2 * Math.PI;
+                let tempSpeed = minSpeed + random * (maxSpeed - minSpeed);
+                let ball = {
+                    x: Math.random() * theCanvas.width,
+                    y: Math.random() * theCanvas.height,
+                    r: minRadius + (maxRadius - minRadius) * random,
+                    radians: tempRadians,
+                    speed: tempSpeed,
+                    xunit: Math.cos(tempRadians) * tempSpeed,
+                    yunit: Math.sin(tempRadians) * tempSpeed,
+                };
+                console.log(ball);
+                balls.push(ball);
+            }
+
+            function updateBall(ball) {
+                ball.xunit = Math.cos(ball.radians) * ball.speed;
+                ball.yunit = Math.sin(ball.radians) * ball.speed;
+            }
+
+            function circle(x, y, r) {
+                r = r ? r : 10;
+                context.beginPath();
+                context.arc(x, y, r, 0, 2 * Math.PI, false);
+                context.closePath();
+                context.fillStyle = "#ff0000";
+                context.fill();
+            }
+
+            function drawScreen() {
+                context.fillStyle = '#EEEEEE';
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+                //Box
+                context.strokeStyle = '#000000';
+                context.strokeRect(1, 1, theCanvas.width - 2, theCanvas.height - 2);
+
+                for (let i = 0; i < ballCount; ++i) {
+                    let ball = balls[i];
+                    ball.x += ball.xunit;
+                    ball.y += ball.yunit;
+                    circle(ball.x, ball.y, ball.r);
+
+                    if (ball.x < 0 || ball.x > theCanvas.width) {
+                        ball.radians = Math.PI - ball.radians;
+                        updateBall(ball);
+                    }
+
+                    if (ball.y < 0 || ball.y > theCanvas.height) {
+                        ball.radians = Math.PI * 2 - ball.radians;
+                        updateBall(ball);
+                    }
+                }
+
+
+            }
+
+
+            function gameLoop() {
+                window.setTimeout(gameLoop, 40);
+                drawScreen()
+            }
+
+            gameLoop();
+        }
+    </script>
+
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+
+    <canvas id="canvasOne" width="1000" height="500">
+        Your browser does not support the HTML 5 Canvas.
+    </canvas>
+</div>
+
+
+</body>
+</html>
+
+
+
+

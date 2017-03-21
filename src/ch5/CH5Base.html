@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CH5EX1: Moving On A Simple Line</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener('load', eventWindowLoaded, false);
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById('canvasOne');
+            var context = theCanvas.getContext('2d');
+            let timeoutHandler;
+            let speed = 5;
+            let radius = 10;
+
+            function drawScreen() {
+                context.fillStyle = '#EEEEEE';
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+                //Box
+                context.strokeStyle = '#000000';
+                context.strokeRect(1, 1, theCanvas.width - 2, theCanvas.height - 2);
+            }
+
+
+            function gameLoop() {
+                timeoutHandler = window.setTimeout(gameLoop, 20);
+                drawScreen()
+            }
+
+            function circle(x, y, r) {
+                r = r ? r : radius;
+                context.beginPath();
+                context.arc(x, y, r, 0, 2 * Math.PI, false);
+                context.closePath();
+                context.fillStyle = "#ff0000"
+                context.fill();
+            }
+
+            gameLoop();
+        }
+    </script>
+
+</head>
+<body>
+<div style="position: absolute; top: 50px; left: 50px;">
+
+    <canvas id="canvasOne" width="500" height="500">
+        Your browser does not support the HTML 5 Canvas.
+    </canvas>
+</div>
+
+
+</body>
+</html>
+
+
+
+

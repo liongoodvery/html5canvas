@@ -26,33 +26,45 @@
                 var theCanvas = document.getElementById('canvas');
                 var context = theCanvas.getContext('2d');
             }
-
             const animationFrames = [1, 2, 3, 4, 5, 6, 7, 8];
             let frameIndex = 0;
             let x = 50;
-            let y = 100;
-            let dx = 0;
-            let dy = -10;
+            let y = 50;
+            let dx = 1;
+            let dy = 0;
+            let gridDrawn = false;
 
             let spaceShip = new Image();
             spaceShip.src = 'tanks_sheet.png';
-
             spaceShip.addEventListener('load', eventSheetLoaded, false);
-
             drawScreen();
+            function drawGrid() {
+                context.globalAlpha = 0.75;
+                let colors = ['#b3601a', '#c412aa', '#95436a', '#555daa', '#623aaa',]
+                for (let i = 0; i < 10; ++i) {
+                    for (let j = 0; j < 10; ++j) {
+                        context.fillStyle = colors[parseInt(Math.random() * 1024) % colors.length];
+                        context.fillRect(50 * i, 50 * j, 50, 50);
+                    }
+                }
+                context.globalAlpha = 1.0;
+            }
+
 
             function drawScreen() {
-                context.fillStyle = '#aaaaaa';
-                context.fillRect(0, 0, 200, 200);
-                context.fillStyle = '#000000';
-                context.font = '20px sans-serif';
-                context.textBaseline = 'top';
+                drawGrid();
 
-                let sourceX = Math.floor(animationFrames[frameIndex] % 8) * 32;
-                let sourceY = Math.floor(animationFrames[frameIndex] / 8) * 32;
+
                 x = x + dx;
                 y = y + dy;
-                context.drawImage(spaceShip, sourceX, sourceY, 32, 32, x, y, 32, 32);
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.translate(x + 16, y + 16);
+                context.rotate(90 * Math.PI / 180);
+                let sourceX = Math.floor(animationFrames[frameIndex] % 8) * 32;
+                let sourceY = Math.floor(animationFrames[frameIndex] / 8) * 32;
+                context.drawImage(spaceShip, sourceX, sourceY, 32, 32, -16, -16, 32, 32);
+                context.restore();
 
                 ++frameIndex;
                 if (frameIndex == animationFrames.length) {
@@ -78,7 +90,7 @@
     </script>
 </head>
 <body>
-<div style="position: absolute; top: 50px; left: 50px;background: #99ff99">
+<div style="position: absolute; top: 50px; left: 50px;">
     <canvas id="canvas" width="500" height="500">
         Your browser does not support the HTML 5 Canvas.
     </canvas>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ch4BaseFile Template For Chapter 4 Examples</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener('load', eventWindowLoaded, false);
+
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            } else {
+                var theCanvas = document.getElementById('canvas');
+                var context = theCanvas.getContext('2d');
+            }
+
+            let photo = new Image();
+            photo.addEventListener('load', eventPhotoLoaded, false);
+            photo.src = "tanks_sheet.png";
+
+            let mouseX;
+            let mouseY;
+            let imageData = context.createImageData(32, 32);
+
+            function eventPhotoLoaded() {
+                startUp();
+            }
+
+            function startUp() {
+                context.fillStyle = "#aaaaaa";
+                context.fillRect(0, 0, 256, 256);
+                drawTileSheet();
+            }
+
+            function drawTileSheet() {
+                context.drawImage(photo, 0, 0);
+            }
+
+            theCanvas.addEventListener("mousemove", onMouseMove, false);
+            theCanvas.addEventListener("click", onMouseClick, false);
+            function onMouseMove(e) {
+                mouseX = e.clientX - theCanvas.offsetLeft;
+                mouseY = e.clientY - theCanvas.offsetTop;
+            }
+
+            function onMouseClick(e) {
+                console.log('mouseX=' + mouseX, 'mouseY=' + mouseY);
+                let unit = 32;
+                let startX = Math.floor(mouseX / unit) * unit;
+                let startY = Math.floor(mouseY / unit) * unit
+                if (mouseY < 128) {
+                    context.fillStyle = "#aaaaaa";
+                    context.fillRect(0, 0, 256, 128);
+                    context.drawImage(photo, 0, 0);
+
+                    imageData = context.getImageData(startX, startY, unit, unit);
+                    let length = imageData.data.length;
+                    for (let j = 0; j < length; j += 8) {
+                        imageData.data[j] = 128;
+                    }
+
+                    context.strokeStyle = "red";
+                    context.strokeRect(startX, startY, unit, unit)
+                } else {
+                    context.putImageData(imageData, startX, startY);
+                }
+            }
+        }
+
+
+    </script>
+</head>
+<body>
+<div>
+    <canvas id="canvas" width="256" height="256" style="position: absolute; top: 50px; left: 50px;">
+        Your browser does not support the HTML 5 Canvas.
+    </canvas>
+</div>
+</body>
+</html>

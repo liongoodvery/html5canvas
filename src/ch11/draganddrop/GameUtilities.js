@@ -1,15 +1,15 @@
-
-var Debugger = function () { };
+var Debugger = function () {
+};
 Debugger.log = function (message) {
-	try {
-		console.log(message);
-	} catch (exception) {
-		return;
-	}
+    try {
+        console.log(message);
+    } catch (exception) {
+        return;
+    }
 }
 
 
-function canvasSupport () {
-  	return Modernizr.canvas;
+function canvasSupport() {
+    return Modernizr.canvas;
 }
 

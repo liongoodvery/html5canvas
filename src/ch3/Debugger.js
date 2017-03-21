@@ -1,8 +1,9 @@
-var Debugger = function () { };
+var Debugger = function () {
+};
 Debugger.log = function (message) {
-	try {
-		console.log(message);
-	} catch (exception) {
-		return;
-	}
+    try {
+        console.log(message);
+    } catch (exception) {
+        return;
+    }
 }

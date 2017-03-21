@@ -27,6 +27,12 @@
                 var context = theCanvas.getContext('2d');
             }
 
+            let spaceShip = new Image();
+
+            let counter = 1;
+            spaceShip.src = 'tanks_sheet.png';
+
+            spaceShip.addEventListener('load', eventSheetLoaded, false);
 
             drawScreen();
 
@@ -36,18 +42,36 @@
                 context.fillStyle = '#000000';
                 context.font = '20px sans-serif';
                 context.textBaseline = 'top';
-                context.fillText("Canvas!", 0, 0);
 
+                var sourceX = Math.floor(counter) * 32;
+                var sourceY = Math.floor(counter / 8) * 32;
+                context.drawImage(spaceShip, sourceX, sourceY, 32, 32, 50, 200 - 32 * counter, 32, 32);
 
+                ++counter;
+                if (counter > 8) {
+                    counter = 1;
+                }
             }
 
+            function eventSheetLoaded() {
+                startUp()
+            }
+
+            function startUp() {
+                gameLoop();
+            }
+
+            function gameLoop() {
+                window.setTimeout(gameLoop, 1000);
+                drawScreen();
+            }
         }
 
 
     </script>
 </head>
 <body>
-<div style="position: absolute; top: 50px; left: 50px;">
+<div style="position: absolute; top: 50px; left: 50px;background: #99ff99">
     <canvas id="canvas" width="500" height="500">
         Your browser does not support the HTML 5 Canvas.
     </canvas>
